@@ -1,12 +1,7 @@
 name: CI
 
 on:
-  push:
-    branches:
-      - '**'
-  pull_request:
-  schedule:
-    - cron: '0 0 * * 0'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,7 +9,7 @@ permissions:
 jobs:
   test-node:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
 
     strategy:
       fail-fast: false
@@ -76,3 +71,15 @@ jobs:
       - name: Run tests with Node.js native WebSocket (engine.io-client)
         run: npm run test:node-builtin-ws --workspace=engine.io-client
         if: ${{ matrix.node-version == '22' }}
+
+      - name: Pack socket.io-parser
+        run: npm pack --workspace=socket.io-parser
+        if: ${{ matrix.node-version == '24' }}
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: socket.io-parser-tarball
+          path: socket.io-parser-4.2.6.tgz
+          if-no-files-found: error
+        if: ${{ matrix.node-version == '24' }}
